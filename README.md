@@ -2,6 +2,10 @@
 
 ## Install
 
+Before starting the installation you must download the following compressed archive with the files with the elevation data and the Openrouteservice routing API:
+[Large files]([https://docs.docker.com/engine/install/](https://drive.google.com/file/d/1WKKnH38WzV97rWczZRKWn4xAFzmn72xw/view?usp=share_link)) 
+
+
 We suggest using docker to install and launch the backend of the Bus Line Segmentation Service. In short, a machine with a running [docker installation](https://docs.docker.com/engine/install/) will do everything for you. 
 
 Before starting the docker container, you must configure its API KEY inside the Dockerfile by modifying line 32:
@@ -28,7 +32,7 @@ If you want to add a bus line and you already have the docker container launched
 
 To retrieve the segmented data from the service you can use the following command after the bus-line has been segmented:
 ```
-docker cp "bus-line-segmentation:eMob_Croatia/segmented_lines" ./
+    docker cp "bus-line-segmentation:eMob_Croatia/segmented_lines" ./
 ```
 
 ## Input format
