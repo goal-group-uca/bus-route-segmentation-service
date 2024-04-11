@@ -2,8 +2,8 @@
 
 ## Install
 
-Before starting the installation you must download the following compressed archive with the files with the elevation data and the Openrouteservice routing API:
-[Large files]([https://docs.docker.com/engine/install/](https://drive.google.com/file/d/1WKKnH38WzV97rWczZRKWn4xAFzmn72xw/view?usp=share_link)) 
+Before starting the installation you must download the following zipped archive with the large files of the project and unzip it:
+[https://drive.google.com/file/d/1WKKnH38WzV97rWczZRKWn4xAFzmn72xw/view?usp=share_link](https://drive.google.com/file/d/1WKKnH38WzV97rWczZRKWn4xAFzmn72xw/view?usp=share_link)
 
 
 We suggest using docker to install and launch the backend of the Bus Line Segmentation Service. In short, a machine with a running [docker installation](https://docs.docker.com/engine/install/) will do everything for you. 
