@@ -1,0 +1,7 @@
+name: gdal
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - gdal
+prefix: C:\Users\maest\miniconda3\envs\gdal

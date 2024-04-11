@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bus Lines Segmentation Service</title>
+
+  <link rel="icon" type="image/x-icon" href="/resources/icons8-bus-office-m-96.png">
+  <link rel="stylesheet" href="/css/new_styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="
+    https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/css/bulma-tagsinput.min.css
+    " rel="stylesheet">
+</head>
+
+<section>
+  <nav class="navbar py-5">
+    <div class="container px-8-mobile">
+      <div class="is-flex is-justify-content-between is-align-items-center" style="width: 100%;">
+        <button class="navbar-menu-open button is-ghost">
+        </button>
+        <a class="mx-auto" href="">
+          <img src="/resources/icons8-bus-office-m-96.png">
+        </a>
+      </div>
+    </div>
+  </nav>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Bus Lines Segmentation Service
+    </h1>
+    <p class="subtitle">
+      Select a CSV file with the information of the bus line to be segmented
+    </p>
+    <div class="columns is-mobile">
+      <div id="file-js" class="column file has-name is-light  is-4">
+        <p class="subtitle is-spaced">Bus line</p>
+        <div>
+          <label class="file-label">
+            <input class="file-input" type="file" name="resume">
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">
+                Choose a file…
+              </span>
+            </span>
+            <span id="inputbusline" class="file-name">
+              7_parades_linia_Barcelona_conAlturas.csv
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="column is-2">
+        <p class="subtitle is-spaced">Bus direction</p>
+        <div class="select is-link">
+          <select id="busdirection">
+            <option>Round trip</option>
+            <option>One way</option>
+            <option>Return way</option>
+          </select>
+        </div>
+      </div>
+
+
+      <div class="column">
+        <p class="subtitle is-spaced">Exception points</p>
+        <input id="tag-input1" class="is-info">
+      </div>
+
+
+      <div class="column">
+        <p class="subtitle is-spaced">Transit points</p>
+        <input id="tag-input2" class="is-info">
+      </div>
+
+    </div>
+
+    <div class="columns">
+
+      <div class="column has-text-centered is-align-items-center">
+        <button class="button is-light" onclick="getPreliminarMap()">Plot preliminar map</button>
+      </div>
+
+      <div class="column has-text-centered is-align-items-center">
+        <button class="button is-light" onclick="getSegmentedLine()">Segment bus line</button>
+      </div>
+
+      <div class="column has-text-centered is-align-items-center">
+        <button class="button is-light" onclick="getElevationMap()">Plot elevation map</button>
+      </div>
+
+    </div>
+
+    <br>
+
+    <div class="tabs is-boxed is-centered">
+      <ul>
+        <li id="preliminary-tab" class="is-active">
+          <a onClick="switchPreliminaryMap()">
+            <span class="icon is-small"><i class="fas fa-map" aria-hidden="true"></i></span>
+            <span>Preliminary Bus Line Map</span>
+          </a>
+        </li>
+        <li id="segmented-tab">
+          <a onClick="switchSegmentedCSV()">
+            <span class="icon is-small"><i class="fas fa-bus" aria-hidden="true"></i></span>
+            <span>Segmented Bus Line CSV</span>
+          </a>
+        </li>
+        <li id="elevation-tab">
+          <a onClick="switchElevationMap()">
+            <span class="icon is-small"><i class="fas fa-mountain" aria-hidden="true"></i></span>
+            <span>Bus Line Elevation Map</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="container">
+      <div id="preliminary-tab-content">
+        <h1 class="title is-1" style="text-align:center;">Here will be the contents of the "Preliminary" tab</h1>
+      </div>
+      <div class="is-hidden" id="segmented-tab-content">
+        <h1 class="title is-1" style="text-align:center;">Here will be the contents of the "Segmented" tab</h1>
+      </div>
+      <div class="is-hidden" id="elevation-tab-content">
+        <h1 class="title is-1" style="text-align:center;">Here will be the contents of the "Elevation" tab</h1>
+      </div>
+    </div>
+</section>
+
+</body>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="//jquerycsvtotable.googlecode.com/files/jquery.csvToTable.js"></script>
+
+<script>
+
+
+
+  const fileInput = document.querySelector('#file-js input[type=file]');
+
+  fileInput.onchange = () => {
+    if (fileInput.files.length > 0) {
+      const fileName = document.querySelector('#inputbusline');
+      fileName.textContent = fileInput.files[0].name;
+    }
+  }
+
+  function removeActive() {
+    $("li").each(function () {
+      $(this).removeClass("is-active");
+    });
+  }
+
+  function hideAll() {
+    $("#preliminary-tab-content").addClass("is-hidden");
+    $("#segmented-tab-content").addClass("is-hidden");
+    $("#elevation-tab-content").addClass("is-hidden");
+  }
+
+  function switchPreliminaryMap() {
+    removeActive();
+    hideAll();
+    $("#preliminary-tab").addClass("is-active");
+    $("#preliminary-tab-content").removeClass("is-hidden");
+  }
+
+  function switchSegmentedCSV() {
+    removeActive();
+    hideAll();
+    $("#segmented-tab").addClass("is-active");
+    $("#segmented-tab-content").removeClass("is-hidden");
+  }
+
+  function switchElevationMap() {
+    removeActive();
+    hideAll();
+    $("#elevation-tab").addClass("is-active");
+    $("#elevation-tab-content").removeClass("is-hidden");
+  }
+
+  (function () {
+
+    "use strict"
+
+
+    // Plugin Constructor
+    var TagsInput = function (opts) {
+      this.options = Object.assign(TagsInput.defaults, opts);
+      this.init();
+    }
+
+    // Initialize the plugin
+    TagsInput.prototype.init = function (opts) {
+      this.options = opts ? Object.assign(this.options, opts) : this.options;
+
+      if (this.initialized)
+        this.destroy();
+
+      if (!(this.orignal_input = document.getElementById(this.options.selector))) {
+        console.error("tags-input couldn't find an element with the specified ID");
+        return this;
+      }
+
+      this.arr = [];
+      this.wrapper = document.createElement('div');
+      this.input = document.createElement('input');
+      this.input.classList.add("input")
+      this.input.classList.add("is-info")
+      init(this);
+      initEvents(this);
+
+      this.initialized = true;
+      return this;
+    }
+
+    // Add Tags
+    TagsInput.prototype.addTag = function (string) {
+
+      if (this.anyErrors(string))
+        return;
+
+      this.arr.push(string);
+      var tagInput = this;
+
+      var tag = document.createElement('span');
+      tag.className = this.options.tagClass;
+      tag.innerText = string;
+
+      var closeIcon = document.createElement('a');
+      closeIcon.innerHTML = '&times;';
+
+      // delete the tag when icon is clicked
+      closeIcon.addEventListener('click', function (e) {
+        e.preventDefault();
+        var tag = this.parentNode;
+
+        for (var i = 0; i < tagInput.wrapper.childNodes.length; i++) {
+          if (tagInput.wrapper.childNodes[i] == tag)
+            tagInput.deleteTag(tag, i);
+        }
+      })
+
+
+      tag.appendChild(closeIcon);
+      this.wrapper.insertBefore(tag, this.input);
+      this.orignal_input.value = this.arr.join(',');
+
+      return this;
+    }
+
+    // Delete Tags
+    TagsInput.prototype.deleteTag = function (tag, i) {
+      tag.remove();
+      this.arr.splice(i, 1);
+      this.orignal_input.value = this.arr.join(',');
+      return this;
+    }
+
+    // Make sure input string have no error with the plugin
+    TagsInput.prototype.anyErrors = function (string) {
+      if (this.options.max != null && this.arr.length >= this.options.max) {
+        console.log('max tags limit reached');
+        return true;
+      }
+
+      if (!this.options.duplicate && this.arr.indexOf(string) != -1) {
+        console.log('duplicate found " ' + string + ' " ')
+        return true;
+      }
+
+      return false;
+    }
+
+    // Add tags programmatically 
+    TagsInput.prototype.addData = function (array) {
+      var plugin = this;
+
+      array.forEach(function (string) {
+        plugin.addTag(string);
+      })
+      return this;
+    }
+
+    // Get the Input String
+    TagsInput.prototype.getInputString = function () {
+      return this.arr.join(',');
+    }
+
+
+    // destroy the plugin
+    TagsInput.prototype.destroy = function () {
+      this.orignal_input.removeAttribute('hidden');
+
+      delete this.orignal_input;
+      var self = this;
+
+      Object.keys(this).forEach(function (key) {
+        if (self[key] instanceof HTMLElement)
+          self[key].remove();
+
+        if (key != 'options')
+          delete self[key];
+      });
+
+      this.initialized = false;
+    }
+
+    // Private function to initialize the tag input plugin
+    function init(tags) {
+      tags.wrapper.append(tags.input);
+      tags.wrapper.classList.add(tags.options.wrapperClass);
+      tags.orignal_input.setAttribute('hidden', 'true');
+      tags.orignal_input.parentNode.insertBefore(tags.wrapper, tags.orignal_input);
+    }
+
+    // initialize the Events
+    function initEvents(tags) {
+      tags.wrapper.addEventListener('click', function () {
+        tags.input.focus();
+      });
+
+
+      tags.input.addEventListener('keydown', function (e) {
+        var str = tags.input.value.trim();
+
+        if (!!(~[9, 13, 188].indexOf(e.keyCode))) {
+          e.preventDefault();
+          tags.input.value = "";
+          if (str != "")
+            tags.addTag(str);
+        }
+
+      });
+    }
+
+
+    // Set All the Default Values
+    TagsInput.defaults = {
+      selector: '',
+      wrapperClass: 'tags-input-wrapper',
+      tagClass: 'tag',
+      max: null,
+      duplicate: false
+    }
+
+    window.TagsInput = TagsInput;
+
+  })();
+
+  var tagInput1 = new TagsInput({
+    selector: 'tag-input1',
+    duplicate: false,
+    max: 20
+  });
+
+  var tagInput2 = new TagsInput({
+    selector: 'tag-input2',
+    duplicate: false,
+    max: 20
+  });
+
+  const getPreliminarMap = async () => {
+    const sel = document.getElementById('busdirection');
+    const busdirectionString = sel.options[sel.selectedIndex].text;
+    var busdirection;
+    switch (busdirectionString) {
+      case 'One way':
+        busdirection = 0;
+        break;
+      case 'Return way':
+        busdirection = 2;
+        break;
+      default:
+        busdirection = 1;
+        break;
+
+    }
+
+    const settings = {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: document.getElementById('inputbusline').innerText,
+        busdirection: busdirection,
+        exceptionIndexes: tagInput1.arr.map(Number),
+        transitIndexes: tagInput2.arr.map(Number)
+
+      }),
+      cache: 'no-cache'
+    };
+
+    try {
+      const response = await fetch(`http://localhost:8082/postInputBusLine`, settings);
+      if (response.ok) {
+        const jsonResponse = await response.json()
+        const tab_content = $("#preliminary-tab-content")
+        tab_content.empty()
+        tab_content.append(jsonResponse.map)
+      }
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+
+  const getElevationMap = async () => {
+    const sel = document.getElementById('busdirection');
+    const busdirectionString = sel.options[sel.selectedIndex].text;
+    var busdirection;
+    switch (busdirectionString) {
+      case 'One way':
+        busdirection = 0;
+        break;
+      case 'Return way':
+        busdirection = 2;
+        break;
+      default:
+        busdirection = 1;
+        break;
+
+    }
+
+    const settings = {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: document.getElementById('inputbusline').innerText,
+        busdirection: busdirection,
+        exceptionIndexes: tagInput1.arr.map(Number),
+        transitIndexes: tagInput2.arr.map(Number)
+
+      }),
+      cache: 'no-cache'
+    };
+
+    try {
+      const response = await fetch(`http://localhost:8082/elevationBusLine`, settings);
+      if (response.ok) {
+        const jsonResponse = await response.json()
+        const tab_content = $("#elevation-tab-content")
+        tab_content.empty()
+        tab_content.append(jsonResponse.map)
+      }
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+  const getSegmentedLine = async () => {
+
+    const settings = {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename: document.getElementById('inputbusline').innerText,
+        exceptionIndexes: tagInput1.arr.map(Number),
+        transitIndexes: tagInput2.arr.map(Number)
+
+      }),
+      cache: 'no-cache'
+    };
+
+    try {
+      const response = await fetch(`http://localhost:8082/segmentBusLine`, settings);
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        const tab_content = $("#segmented-tab-content");
+        tab_content.empty();
+        tab_content.append(jsonResponse.map);
+      }
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+
+
+</script>
+
+</html>

@@ -1,0 +1,6 @@
+name: geo_env
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+prefix: C:\Users\maest\miniconda3\envs\geo_env
